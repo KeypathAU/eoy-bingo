@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bingo Prize Draw</title>
+<style>
+:root {
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --ink: #1b2233;
+  --muted: #667085;
+  --line: #d9dde5;
+  --accent: #d63c55;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 760px) { main { grid-template-columns: 1fr; } }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+h1, h2 { margin: 0; }
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.1rem; }
+p { margin: 0; color: var(--muted); }
+#qr { justify-self: center; padding: 12px; background: #fff; }
+#qr img, #qr canvas { width: min(340px, 70vw) !important; height: auto !important; }
+.url { text-align: center; font-size: 0.9rem; word-break: break-all; }
+.winner { min-height: 3.2em; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 2.4rem; font-weight: 800; border: 2px dashed var(--line); border-radius: 10px; padding: 12px; }
+.winner.won { border: 2px solid var(--accent); color: var(--accent); }
+.btn { font: inherit; font-weight: 700; font-size: 1.1rem; padding: 14px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+ul { margin: 0; padding: 0; list-style: none; columns: 2; column-gap: 20px; }
+li { padding: 4px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+li.won { color: var(--accent); font-weight: 700; }
+.count { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <section class="panel">
+    <h1>End of Year Bingo</h1>
+    <p>Scan to play. Tick off all 16 squares to go in the prize draw.</p>
+    <div id="qr"></div>
+    <div class="url" id="url"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Prize draw</h2>
+    <div class="winner" id="winner">Who will it be?</div>
+    <button class="btn" id="draw" type="button" disabled>Draw a winner</button>
+    <h2><span class="count" id="count">0</span> in the draw</h2>
+    <ul id="list"></ul>
+    <p id="status"></p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const DB = "https://unsw-team-calendar-default-rtdb.asia-southeast1.firebasedatabase.app/eoy_bingo/entries.json";
+const playUrl = location.href.replace(/draw\.html.*$/, "").replace(/[?#].*$/, "");
+document.getElementById("url").textContent = playUrl;
+new QRCode(document.getElementById("qr"), { text: playUrl, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+
+let names = [];
+const winners = new Set();
+let spinning = false;
+
+async function refresh() {
+  try {
+    const r = await fetch(DB + "?t=" + Date.now());
+    const data = (await r.json()) || {};
+    const seen = new Map();
+    Object.values(data).sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(e => {
+      const n = String(e.name || "").trim();
+      if (n && !seen.has(n.toLowerCase())) seen.set(n.toLowerCase(), n);
+    });
+    names = [...seen.values()];
+    document.getElementById("status").textContent = "";
+  } catch (x) {
+    document.getElementById("status").textContent = "Can't reach the entries right now. Retrying...";
+  }
+  renderList();
+}
+
+function renderList() {
+  document.getElementById("count").textContent = names.length;
+  const ul = document.getElementById("list");
+  ul.replaceChildren(...names.map(n => {
+    const li = document.createElement("li");
+    li.textContent = n;
+    if (winners.has(n)) li.className = "won";
+    return li;
+  }));
+  const left = names.filter(n => !winners.has(n));
+  document.getElementById("draw").disabled = spinning || left.length === 0;
+}
+
+document.getElementById("draw").addEventListener("click", () => {
+  const pool = names.filter(n => !winners.has(n));
+  if (!pool.length) return;
+  spinning = true;
+  renderList();
+  const box = document.getElementById("winner");
+  box.classList.remove("won");
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let ticks = reduce ? 0 : 28, delay = 50;
+  (function spin() {
+    if (ticks-- > 0) {
+      box.textContent = pool[Math.floor(Math.random() * pool.length)];
+      delay *= 1.08;
+      setTimeout(spin, delay);
+      return;
+    }
+    box.textContent = pick;
+    box.classList.add("won");
+    winners.add(pick);
+    spinning = false;
+    document.getElementById("draw").textContent = "Draw again";
+    renderList();
+  })();
+});
+
+refresh();
+setInterval(refresh, 4000);
+</script>
+</body>
+</html>

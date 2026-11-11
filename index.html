@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>End of Year Bingo</title>
+<style>
+:root {
+  --bg: #f5f6f8;
+  --card: #ffffff;
+  --ink: #1b2233;
+  --muted: #667085;
+  --line: #d9dde5;
+  --accent: #d63c55;
+  --done: #1f7a5a;
+  --done-bg: #e5f3ed;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 520px; margin: 0 auto; padding: 24px 16px 40px; display: grid; gap: 16px; }
+h1 { margin: 0; font-size: 1.6rem; }
+p { margin: 0; color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.sq { aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; font-size: 0.78rem; line-height: 1.2; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; overflow-wrap: anywhere; }
+.sq[aria-pressed="true"] { background: var(--done-bg); border-color: var(--done); color: var(--done); font-weight: 600; }
+.sq:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.count { font-weight: 600; color: var(--ink); }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; }
+.panel[hidden] { display: none; }
+label { font-weight: 600; }
+input { font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 8px; width: 100%; }
+.btn { font: inherit; font-weight: 600; padding: 12px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.err { color: var(--accent); font-size: 0.9rem; }
+.big { font-size: 1.2rem; font-weight: 700; color: var(--done); }
+@media (max-width: 380px) { .sq { font-size: 0.68rem; padding: 4px; } }
+</style>
+</head>
+<body>
+<main>
+  <div>
+    <h1>End of Year Bingo</h1>
+    <p>Find someone who matches each square and have a chat. Tap the square once you've found them. Use a different person for each one.</p>
+  </div>
+
+  <p class="count" id="count">0 of 16 ticked</p>
+  <div class="grid" id="grid"></div>
+
+  <form class="panel" id="enter" hidden>
+    <span class="big">All 16 done!</span>
+    <label for="name">Your name, to go in the prize draw</label>
+    <input id="name" autocomplete="name" maxlength="60" required>
+    <button class="btn" id="submit" type="submit">Enter the draw</button>
+    <span class="err" id="err" hidden></span>
+  </form>
+
+  <div class="panel" id="thanks" hidden>
+    <span class="big" id="thanksText"></span>
+    <p>The winner gets drawn later tonight. Keep chatting!</p>
+  </div>
+</main>
+
+<script>
+const SQUARES = [
+  "Started at Keypath this year",
+  "Has a pet with a human name",
+  "Speaks more than two languages",
+  "Has a hidden talent",
+  "Grew up in a country town",
+  "Has worked in hospitality",
+  "Has a summer holiday booked",
+  "Drinks 3+ coffees a day",
+  "Has met someone famous",
+  "Has worked at Keypath 3+ years",
+  "Was born outside Australia",
+  "Has never seen Star Wars",
+  "Plays an instrument",
+  "Has been on a cruise",
+  "Shares your birth month",
+  "Has a go-to karaoke song"
+];
+const DB = "https://unsw-team-calendar-default-rtdb.asia-southeast1.firebasedatabase.app/eoy_bingo/entries.json";
+const KEY = "eoy-bingo-2026";
+
+let state = { ticked: [], entered: "" };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = s; } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+const grid = document.getElementById("grid");
+SQUARES.forEach((text, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "sq";
+  b.textContent = text;
+  b.addEventListener("click", () => {
+    if (state.entered) return;
+    const at = state.ticked.indexOf(i);
+    if (at === -1) state.ticked.push(i); else state.ticked.splice(at, 1);
+    save();
+    render();
+  });
+  grid.appendChild(b);
+});
+
+function render() {
+  [...grid.children].forEach((b, i) => b.setAttribute("aria-pressed", state.ticked.includes(i)));
+  const n = state.ticked.length;
+  document.getElementById("count").textContent = n + " of 16 ticked";
+  const all = n === SQUARES.length;
+  document.getElementById("enter").hidden = !all || !!state.entered;
+  document.getElementById("thanks").hidden = !state.entered;
+  if (state.entered) document.getElementById("thanksText").textContent = "You're in the draw, " + state.entered + "!";
+}
+
+document.getElementById("enter").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = document.getElementById("name").value.trim().replace(/\s+/g, " ");
+  const err = document.getElementById("err");
+  const btn = document.getElementById("submit");
+  if (!name) return;
+  err.hidden = true;
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+  try {
+    const r = await fetch(DB, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, at: { ".sv": "timestamp" } }) });
+    if (!r.ok) throw new Error(r.status);
+    state.entered = name;
+    save();
+    render();
+  } catch (x) {
+    err.textContent = "That didn't send. Check your signal and try again.";
+    err.hidden = false;
+  }
+  btn.disabled = false;
+  btn.textContent = "Enter the draw";
+});
+
+render();
+</script>
+</body>
+</html>
