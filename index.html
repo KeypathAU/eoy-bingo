@@ -2,60 +2,153 @@
 <html lang="en-AU">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c1340">
 <title>End of Year Bingo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
 <style>
 :root {
-  --bg: #f5f6f8;
-  --card: #ffffff;
-  --ink: #1b2233;
-  --muted: #667085;
-  --line: #d9dde5;
-  --accent: #d63c55;
-  --done: #1f7a5a;
-  --done-bg: #e5f3ed;
+  --bg: #1c1340;
+  --bg-2: #2a1d5c;
+  --ink: #ffffff;
+  --soft: #c9c1f0;
+  --tile: rgba(255, 255, 255, 0.08);
+  --tile-line: rgba(255, 255, 255, 0.16);
+  --c1: #ff5c7a;
+  --c2: #ffc93c;
+  --c3: #2ee6c5;
+  --c4: #7aa7ff;
+  --c5: #c38bff;
+  --c6: #ff9a4d;
+  --dark: #1c1340;
+  --fun: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
 }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-main { max-width: 520px; margin: 0 auto; padding: 24px 16px 40px; display: grid; gap: 16px; }
-h1 { margin: 0; font-size: 1.6rem; }
-p { margin: 0; color: var(--muted); }
-.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.sq { aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font: inherit; font-size: 0.78rem; line-height: 1.2; padding: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; overflow-wrap: anywhere; }
-.sq[aria-pressed="true"] { background: var(--done-bg); border-color: var(--done); color: var(--done); font-weight: 600; }
-.sq:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.count { font-weight: 600; color: var(--ink); }
-.panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { background: var(--bg); }
+body {
+  margin: 0; min-height: 100vh; color: var(--ink);
+  font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(120% 60% at 50% -10%, var(--bg-2), var(--bg) 70%);
+  overflow-x: hidden;
+}
+.sky { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.sky i { position: absolute; top: -20px; width: 8px; height: 14px; border-radius: 2px; opacity: 0.55; animation: fall linear infinite; }
+@keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+
+main {
+  position: relative; z-index: 1; max-width: 480px; margin: 0 auto;
+  padding: max(20px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  display: grid; gap: 16px;
+}
+header { text-align: center; display: grid; gap: 6px; }
+.tag { justify-self: center; font: 600 0.75rem/1 var(--fun); letter-spacing: 0.14em; text-transform: uppercase; color: var(--dark); background: var(--c2); padding: 6px 12px; border-radius: 99px; animation: wobble 3s ease-in-out infinite; }
+@keyframes wobble { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+h1 { margin: 0; font: 700 clamp(2.2rem, 11vw, 3rem)/1 var(--fun); letter-spacing: -0.01em; }
+h1 span { display: inline-block; animation: bounce 2.4s ease-in-out infinite; }
+h1 span:nth-child(1) { color: var(--c1); }
+h1 span:nth-child(2) { color: var(--c2); animation-delay: 0.12s; }
+h1 span:nth-child(3) { color: var(--c3); animation-delay: 0.24s; }
+h1 span:nth-child(4) { color: var(--c4); animation-delay: 0.36s; }
+h1 span:nth-child(5) { color: var(--c5); animation-delay: 0.48s; }
+@keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-8px); } }
+.intro { margin: 0; color: var(--soft); font-size: 0.95rem; }
+
+.progress { display: grid; gap: 6px; }
+.progress-top { display: flex; justify-content: space-between; font: 600 0.95rem/1 var(--fun); }
+.progress-top b { color: var(--c2); }
+.bar { height: 12px; border-radius: 99px; background: var(--tile); overflow: hidden; }
+.bar div { height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4), var(--c5)); background-size: 200% 100%; animation: shimmer 3s linear infinite; transition: width 0.45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.sq {
+  position: relative; aspect-ratio: 1 / 1; min-width: 0;
+  border: 1.5px solid var(--tile-line); border-radius: 14px; background: var(--tile); color: var(--ink);
+  font: 600 clamp(0.68rem, 3.1vw, 0.82rem)/1.18 var(--fun); padding: 6px;
+  display: flex; align-items: center; justify-content: center; text-align: center; overflow-wrap: anywhere;
+  cursor: pointer; touch-action: manipulation; user-select: none;
+  transition: transform 0.15s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  animation: deal 0.5s cubic-bezier(.3,1.5,.5,1) backwards;
+}
+@keyframes deal { from { opacity: 0; transform: scale(0.4) rotate(-8deg); } }
+.sq:active { transform: scale(0.93); }
+.sq[aria-pressed="true"] { background: var(--c); border-color: var(--c); color: var(--dark); animation: pop 0.45s cubic-bezier(.3,1.8,.5,1); }
+.sq[aria-pressed="true"]::after {
+  content: "\2713"; position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ink); color: var(--dark); font: 700 0.8rem/22px var(--fun); text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: stamp 0.35s 0.1s cubic-bezier(.3,1.8,.5,1) backwards;
+}
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.14) rotate(-3deg); } 100% { transform: scale(1); } }
+@keyframes stamp { from { transform: scale(0); } }
+.sq.line { animation: glow 0.9s ease 2; }
+@keyframes glow { 50% { box-shadow: 0 0 0 4px var(--ink), 0 0 24px var(--c); transform: scale(1.06); } }
+.sq:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--c2); outline-offset: 3px; }
+
+.toast {
+  position: fixed; left: 50%; top: 38%; z-index: 30; pointer-events: none;
+  font: 700 clamp(2.4rem, 14vw, 3.6rem)/1 var(--fun); color: var(--c2);
+  text-shadow: 0 4px 0 var(--c1), 0 8px 24px rgba(0,0,0,0.4);
+  transform: translate(-50%, -50%) scale(0); opacity: 0;
+}
+.toast.show { animation: toast 1.4s cubic-bezier(.3,1.6,.5,1) forwards; }
+@keyframes toast { 0% { transform: translate(-50%,-50%) scale(0) rotate(-12deg); opacity: 1; } 25% { transform: translate(-50%,-50%) scale(1.1) rotate(4deg); opacity: 1; } 75% { transform: translate(-50%,-50%) scale(1) rotate(0); opacity: 1; } 100% { transform: translate(-50%,-60%) scale(0.9); opacity: 0; } }
+
+.panel { background: var(--ink); color: var(--dark); border-radius: 18px; padding: 18px; display: grid; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); animation: rise 0.6s cubic-bezier(.3,1.5,.5,1); }
 .panel[hidden] { display: none; }
+@keyframes rise { from { opacity: 0; transform: translateY(40px) scale(0.9); } }
+.panel h2 { margin: 0; font: 700 1.6rem/1.1 var(--fun); color: var(--c1); }
+.panel p { margin: 0; color: #4b4470; }
 label { font-weight: 600; }
-input { font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 8px; width: 100%; }
-.btn { font: inherit; font-weight: 600; padding: 12px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; cursor: pointer; }
-.btn:disabled { opacity: 0.6; cursor: default; }
-.err { color: var(--accent); font-size: 0.9rem; }
-.big { font-size: 1.2rem; font-weight: 700; color: var(--done); }
-@media (max-width: 380px) { .sq { font-size: 0.68rem; padding: 4px; } }
+input { font: inherit; font-size: 1rem; padding: 14px; border: 2px solid #d9d3f5; border-radius: 12px; width: 100%; color: var(--dark); background: #fff; }
+input:focus { border-color: var(--c5); outline: none; }
+.btn { font: 700 1.15rem/1 var(--fun); padding: 16px; border: 0; border-radius: 14px; color: #fff; cursor: pointer; touch-action: manipulation; background: linear-gradient(90deg, var(--c1), var(--c6)); box-shadow: 0 5px 0 #c23656; transition: transform 0.1s, box-shadow 0.1s; }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #c23656; }
+.btn:disabled { opacity: 0.6; }
+.err { color: #c23656; font-size: 0.9rem; font-weight: 600; }
+.trophy { font-size: 3rem; line-height: 1; justify-self: center; animation: bounce 1.6s ease-in-out infinite; }
+.thanks { text-align: center; }
+
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .sky { display: none; }
+}
 </style>
 </head>
 <body>
+<div class="sky" id="sky" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="toast" id="toast" aria-hidden="true">LINE!</div>
+
 <main>
-  <div>
-    <h1>End of Year Bingo</h1>
-    <p>Find someone who matches each square and have a chat. Tap the square once you've found them. Use a different person for each one.</p>
+  <header>
+    <span class="tag">End of Year 2026</span>
+    <h1><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></h1>
+    <p class="intro">Find someone who matches each square and have a chat. Tap it once you've found them. A different person for every square!</p>
+  </header>
+
+  <div class="progress">
+    <div class="progress-top"><span id="count"><b>0</b> of 16</span><span id="cheer">Let's go!</span></div>
+    <div class="bar"><div id="bar"></div></div>
   </div>
 
-  <p class="count" id="count">0 of 16 ticked</p>
   <div class="grid" id="grid"></div>
 
   <form class="panel" id="enter" hidden>
-    <span class="big">All 16 done!</span>
-    <label for="name">Your name, to go in the prize draw</label>
+    <h2>Full house!</h2>
+    <p>Pop your name in to go into the prize draw.</p>
+    <label for="name">Your name</label>
     <input id="name" autocomplete="name" maxlength="60" required>
     <button class="btn" id="submit" type="submit">Enter the draw</button>
     <span class="err" id="err" hidden></span>
   </form>
 
-  <div class="panel" id="thanks" hidden>
-    <span class="big" id="thanksText"></span>
+  <div class="panel thanks" id="thanks" hidden>
+    <div class="trophy" aria-hidden="true">&#127881;</div>
+    <h2 id="thanksText"></h2>
     <p>The winner gets drawn later tonight. Keep chatting!</p>
   </div>
 </main>
@@ -81,9 +174,16 @@ const SQUARES = [
 ];
 const DB = "https://unsw-team-calendar-default-rtdb.asia-southeast1.firebasedatabase.app/eoy_bingo/entries.json";
 const KEY = "eoy-bingo-2026";
+const COLOURS = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6"];
+const CHEERS = ["Let's go!", "Nice start!", "Keep mingling!", "On a roll!", "Halfway there!", "So close!", "Last few!", "One more!", "Full house!"];
+const LINES = [];
+for (let r = 0; r < 4; r++) LINES.push([0, 1, 2, 3].map(c => r * 4 + c));
+for (let c = 0; c < 4; c++) LINES.push([0, 1, 2, 3].map(r => r * 4 + c));
+LINES.push([0, 5, 10, 15], [3, 6, 9, 12]);
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-let state = { ticked: [], entered: "" };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = s; } catch (e) {}
+let state = { ticked: [], entered: "", lines: [] };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = Object.assign(state, s); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
 const grid = document.getElementById("grid");
@@ -92,24 +192,108 @@ SQUARES.forEach((text, i) => {
   b.type = "button";
   b.className = "sq";
   b.textContent = text;
-  b.addEventListener("click", () => {
-    if (state.entered) return;
-    const at = state.ticked.indexOf(i);
-    if (at === -1) state.ticked.push(i); else state.ticked.splice(at, 1);
-    save();
-    render();
-  });
+  b.style.setProperty("--c", "var(" + COLOURS[i % COLOURS.length] + ")");
+  b.style.animationDelay = (i * 0.04) + "s";
+  b.addEventListener("click", () => toggle(i, b));
   grid.appendChild(b);
 });
+
+function toggle(i, b) {
+  if (state.entered) return;
+  const at = state.ticked.indexOf(i);
+  if (at === -1) {
+    state.ticked.push(i);
+    if (navigator.vibrate) navigator.vibrate(12);
+    const r = b.getBoundingClientRect();
+    burst(r.left + r.width / 2, r.top + r.height / 2, 18, 4);
+  } else {
+    state.ticked.splice(at, 1);
+  }
+  const done = LINES.map((l, k) => l.every(x => state.ticked.includes(x)) ? k : -1).filter(k => k >= 0);
+  const fresh = done.filter(k => !state.lines.includes(k));
+  state.lines = done;
+  save();
+  render();
+  if (state.ticked.length === 16) {
+    celebrate();
+  } else if (fresh.length) {
+    showToast("LINE!");
+    fresh.forEach(k => LINES[k].forEach(x => {
+      const el = grid.children[x];
+      el.classList.remove("line"); void el.offsetWidth; el.classList.add("line");
+    }));
+    burst(innerWidth / 2, innerHeight * 0.38, 60, 7);
+  }
+}
 
 function render() {
   [...grid.children].forEach((b, i) => b.setAttribute("aria-pressed", state.ticked.includes(i)));
   const n = state.ticked.length;
-  document.getElementById("count").textContent = n + " of 16 ticked";
-  const all = n === SQUARES.length;
-  document.getElementById("enter").hidden = !all || !!state.entered;
+  document.getElementById("count").innerHTML = "<b>" + n + "</b> of 16";
+  document.getElementById("cheer").textContent = CHEERS[Math.min(CHEERS.length - 1, Math.ceil(n / 2))];
+  document.getElementById("bar").style.width = (n / 16 * 100) + "%";
+  document.getElementById("enter").hidden = n !== 16 || !!state.entered;
   document.getElementById("thanks").hidden = !state.entered;
   if (state.entered) document.getElementById("thanksText").textContent = "You're in the draw, " + state.entered + "!";
+}
+
+function showToast(text) {
+  if (calm) return;
+  const t = document.getElementById("toast");
+  t.textContent = text;
+  t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+}
+
+function celebrate() {
+  showToast("BINGO!");
+  if (navigator.vibrate) navigator.vibrate([30, 40, 30, 40, 60]);
+  burst(innerWidth * 0.2, innerHeight * 0.3, 80, 9);
+  setTimeout(() => burst(innerWidth * 0.8, innerHeight * 0.3, 80, 9), 200);
+  setTimeout(() => burst(innerWidth / 2, innerHeight * 0.2, 120, 11), 400);
+  setTimeout(() => {
+    const f = document.getElementById("enter");
+    f.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
+  }, 700);
+}
+
+const cv = document.getElementById("confetti");
+const ctx = cv.getContext("2d");
+const bits = [];
+let running = false;
+const palette = COLOURS.map(c => getComputedStyle(document.documentElement).getPropertyValue(c).trim());
+function size() { const d = Math.min(devicePixelRatio || 1, 2); cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+addEventListener("resize", size);
+size();
+function burst(x, y, n, power) {
+  if (calm) return;
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * Math.PI * 2, s = power * (0.4 + Math.random());
+    bits.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - power * 0.6, w: 5 + Math.random() * 6, h: 3 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, c: palette[k % palette.length], life: 70 + Math.random() * 40 });
+  }
+  if (!running) { running = true; requestAnimationFrame(tick); }
+}
+function tick() {
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  for (let k = bits.length - 1; k >= 0; k--) {
+    const p = bits[k];
+    p.vy += 0.22; p.vx *= 0.98; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life--;
+    if (p.life <= 0 || p.y > innerHeight + 20) { bits.splice(k, 1); continue; }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+    ctx.globalAlpha = Math.min(1, p.life / 25);
+    ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  }
+  if (bits.length) requestAnimationFrame(tick); else { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+const sky = document.getElementById("sky");
+for (let k = 0; k < 14; k++) {
+  const i = document.createElement("i");
+  i.style.left = (Math.random() * 100) + "%";
+  i.style.background = palette[k % palette.length];
+  i.style.animationDuration = (9 + Math.random() * 10) + "s";
+  i.style.animationDelay = (-Math.random() * 18) + "s";
+  sky.appendChild(i);
 }
 
 document.getElementById("enter").addEventListener("submit", async (e) => {
@@ -127,6 +311,8 @@ document.getElementById("enter").addEventListener("submit", async (e) => {
     state.entered = name;
     save();
     render();
+    burst(innerWidth / 2, innerHeight * 0.5, 100, 10);
+    document.getElementById("thanks").scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
   } catch (x) {
     err.textContent = "That didn't send. Check your signal and try again.";
     err.hidden = false;
