@@ -104,10 +104,13 @@ const shown = new Set();
 const winners = new Set();
 let spinning = false;
 
+const ROOT = DB.replace("/entries.json", "");
 async function refresh() {
   try {
-    const r = await fetch(DB + "?t=" + Date.now());
-    const data = (await r.json()) || {};
+    const r = await fetch(ROOT + ".json?t=" + Date.now());
+    const all = (await r.json()) || {};
+    const data = all.entries || {};
+    Object.values(all.winners || {}).forEach(w => { if (w && w.name) winners.add(String(w.name).trim().toLowerCase()); });
     const seen = new Map();
     Object.values(data).sort((a, b) => (a.at || 0) - (b.at || 0)).forEach(e => {
       const n = String(e.name || "").trim();
@@ -128,16 +131,16 @@ function renderList() {
     const li = document.createElement("li");
     li.textContent = n;
     if (shown.has(n)) li.style.animation = "none";
-    if (winners.has(n)) li.className = "won";
+    if (winners.has(n.toLowerCase())) li.className = "won";
     return li;
   }));
   names.forEach(n => shown.add(n));
-  const left = names.filter(n => !winners.has(n));
+  const left = names.filter(n => !winners.has(n.toLowerCase()));
   document.getElementById("draw").disabled = spinning || left.length === 0;
 }
 
 document.getElementById("draw").addEventListener("click", () => {
-  const pool = names.filter(n => !winners.has(n));
+  const pool = names.filter(n => !winners.has(n.toLowerCase()));
   if (!pool.length) return;
   spinning = true;
   renderList();
@@ -156,7 +159,10 @@ document.getElementById("draw").addEventListener("click", () => {
     box.textContent = pick;
     box.classList.remove("spin");
     box.classList.add("won");
-    winners.add(pick);
+    winners.add(pick.toLowerCase());
+    fetch(ROOT + "/winners.json", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: pick, at: { ".sv": "timestamp" } }) })
+      .then(r => { if (!r.ok) throw new Error(r.status); })
+      .catch(() => { document.getElementById("status").textContent = "Couldn't save this winner online. Don't reload this page before the next draw."; });
     spinning = false;
     document.getElementById("draw").textContent = "Draw again";
     renderList();

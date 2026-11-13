@@ -196,8 +196,8 @@ dialog.how::backdrop { background: rgba(20, 12, 50, 0.75); backdrop-filter: blur
   <form class="panel" id="enter" hidden>
     <h2>Full house!</h2>
     <p>Pop your name in to go into the prize draw.</p>
-    <label for="name">Your name</label>
-    <input id="name" autocomplete="name" maxlength="60" required>
+    <label for="name">Your first and last name</label>
+    <input id="name" autocomplete="name" autocapitalize="words" maxlength="60" placeholder="e.g. Sam Taylor" required>
     <button class="btn" id="submit" type="submit">Enter the draw</button>
     <span class="err" id="err" hidden></span>
   </form>
@@ -358,6 +358,12 @@ document.getElementById("enter").addEventListener("submit", async (e) => {
   const err = document.getElementById("err");
   const btn = document.getElementById("submit");
   if (!name) return;
+  if (name.split(" ").filter(w => w.replace(/[^\p{L}]/gu, "").length > 0).length < 2) {
+    err.textContent = "Please add your last name too, so we know which one of you won!";
+    err.hidden = false;
+    document.getElementById("name").focus();
+    return;
+  }
   err.hidden = true;
   btn.disabled = true;
   btn.textContent = "Sending...";
