@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1c1340">
-<title>End of Year Bingo</title>
+<title>Keypath End of Year Bingo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap">
@@ -112,6 +112,40 @@ input:focus { border-color: var(--c5); outline: none; }
 
 #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
 
+.steps { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; text-align: left; }
+.steps li { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--tile); border: 1px solid var(--tile-line); font: 600 0.82rem/1.2 var(--fun); min-width: 0; }
+.steps b { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--s); color: var(--dark); font: 700 0.95rem/1 var(--fun); }
+
+.help-btn {
+  position: fixed; z-index: 15; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right));
+  width: 44px; height: 44px; border-radius: 50%; border: 0; cursor: pointer; touch-action: manipulation;
+  background: var(--c3); color: var(--dark); font: 700 1.4rem/44px var(--fun); text-align: center;
+  box-shadow: 0 4px 0 #1fa58d, 0 6px 16px rgba(0,0,0,0.3); animation: wobble 3s ease-in-out infinite;
+}
+.help-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1fa58d; }
+dialog.how {
+  width: min(420px, calc(100vw - 28px)); max-height: calc(100dvh - 40px); overflow-y: auto;
+  border: 0; border-radius: 22px; padding: 0; background: var(--ink); color: var(--dark);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+dialog.how[open] { animation: rise 0.5s cubic-bezier(.3,1.5,.5,1); }
+dialog.how::backdrop { background: rgba(20, 12, 50, 0.75); backdrop-filter: blur(3px); }
+.how-head { background: linear-gradient(120deg, var(--c5), var(--c4)); color: #fff; padding: 20px 20px 16px; text-align: center; }
+.how-head h2 { margin: 0; font: 700 1.8rem/1 var(--fun); }
+.how-head p { margin: 6px 0 0; font-weight: 500; opacity: 0.9; }
+.how ol { list-style: none; margin: 0; padding: 18px 20px 6px; display: grid; gap: 14px; counter-reset: step; }
+.how li { display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: center; counter-increment: step; font-size: 1rem; line-height: 1.35; animation: rise 0.45s cubic-bezier(.3,1.5,.5,1) backwards; }
+.how li:nth-child(2) { animation-delay: 0.08s; }
+.how li:nth-child(3) { animation-delay: 0.16s; }
+.how li:nth-child(4) { animation-delay: 0.24s; }
+.how li::before { content: counter(step); width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 700 1.2rem/1 var(--fun); color: var(--dark); background: var(--s); }
+.how li:nth-child(1) { --s: var(--c1); }
+.how li:nth-child(2) { --s: var(--c2); }
+.how li:nth-child(3) { --s: var(--c3); }
+.how li:nth-child(4) { --s: var(--c5); }
+.how li b { color: var(--dark); }
+.how form { padding: 14px 20px 20px; display: grid; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .sky { display: none; }
@@ -122,12 +156,34 @@ input:focus { border-color: var(--c5); outline: none; }
 <div class="sky" id="sky" aria-hidden="true"></div>
 <canvas id="confetti" aria-hidden="true"></canvas>
 <div class="toast" id="toast" aria-hidden="true">LINE!</div>
+<button class="help-btn" id="helpBtn" type="button" aria-label="How to play">?</button>
+
+<dialog class="how" id="how" aria-labelledby="howTitle">
+  <div class="how-head">
+    <h2 id="howTitle">How to play</h2>
+    <p>Meet people, tick squares, win a prize!</p>
+  </div>
+  <ol>
+    <li><span><b>Find someone</b> who matches a square and have a quick chat.</span></li>
+    <li><span><b>Tap the square</b> to tick it off. Tap again if you made a mistake.</span></li>
+    <li><span><b>One person per square</b>, so you'll meet 16 different people.</span></li>
+    <li><span><b>Tick all 16</b>, add your name, and you're in tonight's prize draw.</span></li>
+  </ol>
+  <form method="dialog">
+    <button class="btn" type="submit">Let's play!</button>
+  </form>
+</dialog>
 
 <main>
   <header>
-    <span class="tag">End of Year 2026</span>
+    <span class="tag">Keypath End of Year</span>
     <h1><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></h1>
-    <p class="intro">Find someone who matches each square and have a chat. Tap it once you've found them. A different person for every square!</p>
+    <ol class="steps">
+      <li style="--s: var(--c1)"><b>1</b><span>Find a person who matches a square</span></li>
+      <li style="--s: var(--c2)"><b>2</b><span>Have a chat, then tap the square</span></li>
+      <li style="--s: var(--c3)"><b>3</b><span>New person for every square</span></li>
+      <li style="--s: var(--c5)"><b>4</b><span>Tick all 16 to win a prize draw spot</span></li>
+    </ol>
   </header>
 
   <div class="progress">
@@ -156,7 +212,7 @@ input:focus { border-color: var(--c5); outline: none; }
 <script>
 const SQUARES = [
   "Started at Keypath this year",
-  "Has a pet with a human name",
+  "Has a pet (get its name and age!)",
   "Speaks more than two languages",
   "Has a hidden talent",
   "Grew up in a country town",
@@ -322,6 +378,13 @@ document.getElementById("enter").addEventListener("submit", async (e) => {
 });
 
 render();
+
+const how = document.getElementById("how");
+function openHow() { if (how.showModal) { if (!how.open) how.showModal(); } else how.setAttribute("open", ""); }
+document.getElementById("helpBtn").addEventListener("click", openHow);
+how.addEventListener("close", () => { state.seenHelp = true; save(); });
+how.addEventListener("click", e => { if (e.target === how) how.close(); });
+if (!state.seenHelp && !state.entered) setTimeout(openHow, calm ? 0 : 700);
 </script>
 </body>
 </html>
